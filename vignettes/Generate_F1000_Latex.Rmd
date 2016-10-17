@@ -1,0 +1,71 @@
+---
+title: "Converting Rmarkdown to F1000Research LaTeX Format"
+author: 
+  - name: Mike L. Smith
+date: "`r doc_date()`"
+output: 
+  BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Converting Rmarkdown to F1000Research LaTeX Format}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+
+# Introduction
+
+The intention of this package is to provide tools to assist in converting between Rmarkdown and LaTeX documents, specifically in the case where one is writing a workflow to be submitted to F1000Research, while hopefully also hosting a runable example on Bioconductor.  Reaching these two endpoints while maintaining a single working document can be challenging.  Submission to the journal requires a LaTeX file, which is best achieved by writing an Rnw workflow based on **Sweave** or **knitr**, while producing the html based versions hosted by Bioconductor is most easily achieved from an Rmarkdown document.  Tools such as **pandoc** will allow conversion between many formats, but there is still a high degree of manual intervention required when aiming to meet the specific formatting requirements of a journal publication.  
+
+The current functionality assumes you have developed, or a planning to develop, a workflow in Rmarkdown, and aims to make the creation of a LaTeX document suitable for submission to F1000Research as straightforward as possible.
+
+Before we can begin, you need to load the library.
+
+```{r loadLibs}
+library(BiocWorkflowTools)
+```
+
+# Rmarkdown example
+
+This package comes with an example Rmd file based upon the LaTeX article template supplied by F1000Research.  This defines the document structure for an F1000Research software article, and gives examples of how you can incorporate tables, figures and evaluated code in your Rmarkdown document.  These examples have all been tested to ensure they can be converted to LaTeX using this package.  If you are just starting out developing your workflow, this template is a good place to start.
+
+The code below finds where the template has been installed on your system, and prints its location, so you can look at it and make a copy to begin creating your own workflow.
+
+```{r exampleFile}
+example_Rmd <- system.file('examples/f1000_software_example.Rmd', package = "BiocWorkflowTools")
+example_Rmd
+```
+
+# Converting to LaTeX
+
+Once you have written your Rmarkdown document, you want to convert it to LaTeX for submission to the journal.   
+
+The function `markdownToLatex()` takes an Rmd file as input.  In the example below we use the example Rmd distributed with the package. This will create a LaTeX file with appropriate formatting options defined in its header, which will produce a PDF document that meets the requirements of an F1000Research article when the LaTeX is compiled.
+
+The `output` argument to `markdownToLatex()` specifies the directory you would like the output written to.  *In the code below the first two lines generate a temporary location we will use in this example.  For your own workflow you will likely want to specify a location directly.  If you do not provide an option here, the default is to use the same directory the Rmd file is located in.*
+
+You can optionally choose to create a *zip* file archive of the output folder using the argument `compress`.  Doing so can make uploading the project for journal submission easier as you only have to select a single file.
+
+
+```{r createTmpDir, message=FALSE, eval=TRUE}
+tmp_dir <- file.path(tempdir(), 'F1000_example')
+dir.create(tmp_dir)
+```
+<!--- setting this to eval=TRUE goes badly.  I think this is because markdownToLatex() explicitly sets knitr to render latex code chunks and everything gets very confused as a result -->
+```{r convertToLatex, message=FALSE, eval=FALSE}
+markdownToLatex(input = example_Rmd, output = tmp_dir, compress = TRUE)
+```
+
+# Article upload
+
+Finally, we provide the function `uploadToOverleaf()` to upload the project directly to Overleaf (<http://www.overleaf.com>), the LaTeX authoring system F1000Research use for their submission process.  This step is entirely optional, and the output created by the previous steps can be uploaded manually.  
+
+<!-- don't run this code chunk as we don't want to spam Overleaf -->
+```{r upload, eval=FALSE}
+zip_file <- paste0(tmp_dir, '.zip')
+uploadToOverleaf(files = zip_file, openInBrowser = TRUE)
+```
+
+# R session information
+
+```{r sessionInfo, eval=TRUE}
+sessionInfo()
+```
